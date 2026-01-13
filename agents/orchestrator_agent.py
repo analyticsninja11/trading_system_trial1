@@ -5,8 +5,8 @@ Compatible with Google's Agent Development Kit (ADK)
 import pandas as pd
 from typing import Dict, Any, List
 import concurrent.futures
-from .macd_seasonal_agent import MACDSeasonalAgent
-from .rsi_value_agent import RSIValueAgent
+from .macd_combined_agent import MACDCombinedAgent
+from .rsi_combined_agent import RSICombinedAgent
 from .sma_delta_agent import SMADeltaAgent
 from .supertrend_agent import SupertrendAgent
 
@@ -27,8 +27,8 @@ class OrchestratorAgent:
         self.status = "initialized"
 
         # Initialize sub-agents
-        self.macd_agent = MACDSeasonalAgent(fast_period=12, slow_period=26, signal_period=9)
-        self.rsi_agent = RSIValueAgent(period=14)
+        self.macd_agent = MACDCombinedAgent()
+        self.rsi_agent = RSICombinedAgent()
         self.sma_agent = SMADeltaAgent(short_period=6, long_period=12)
         self.supertrend_agent = SupertrendAgent(atr_length=10, multiplier=3.0)
 
@@ -73,7 +73,11 @@ class OrchestratorAgent:
                 agent_type = futures[future]
                 try:
                     result = future.result()
-                    results[agent_type] = result
+                    # Handle AgentResult objects (from UnifiedAgent-based agents like MACDCombinedAgent)
+                    if hasattr(result, 'to_dict'):
+                        results[agent_type] = result.to_dict()
+                    else:
+                        results[agent_type] = result
                 except Exception as e:
                     print(f"[{self.name}] Error in {agent_type} agent: {e}")
                     results[agent_type] = {
@@ -106,16 +110,20 @@ class OrchestratorAgent:
         results = {}
 
         # MACD on daily
-        results["MACD"] = self.macd_agent.run(daily_df)
+        macd_result = self.macd_agent.run(daily_df)
+        results["MACD"] = macd_result.to_dict() if hasattr(macd_result, 'to_dict') else macd_result
 
         # RSI on daily
-        results["RSI"] = self.rsi_agent.run(daily_df)
+        rsi_result = self.rsi_agent.run(daily_df)
+        results["RSI"] = rsi_result.to_dict() if hasattr(rsi_result, 'to_dict') else rsi_result
 
         # SMA on monthly
-        results["SMA"] = self.sma_agent.run(monthly_df)
+        sma_result = self.sma_agent.run(monthly_df)
+        results["SMA"] = sma_result.to_dict() if hasattr(sma_result, 'to_dict') else sma_result
 
         # Supertrend on daily
-        results["Supertrend"] = self.supertrend_agent.run(daily_df)
+        supertrend_result = self.supertrend_agent.run(daily_df)
+        results["Supertrend"] = supertrend_result.to_dict() if hasattr(supertrend_result, 'to_dict') else supertrend_result
 
         print(f"[{self.name}] All sub-agents completed")
         return results
@@ -143,20 +151,43 @@ class OrchestratorAgent:
 
         # Condition 1: MACD Season is Spring or Summer
         if sub_agent_results["MACD"]["status"] == "completed":
-            macd_output = sub_agent_results["MACD"]["output"]
-            season = macd_output.get("current_season", "Unknown")
+            # Combined agent returns summary with seasonal_analysis
+            macd_result = sub_agent_results["MACD"]
+            if "summary" in macd_result and "seasonal_analysis" in macd_result["summary"]:
+                seasonal = macd_result["summary"]["seasonal_analysis"]
+                season = seasonal.get("current_season", "Unknown")
+                is_bullish = seasonal.get("is_bullish_season", False)
+            else:
+                # Fallback for old format
+                macd_output = macd_result.get("output", {})
+                season = macd_output.get("current_season", "Unknown")
+                is_bullish = macd_output.get("is_bullish_season", False)
+
             conditions["condition_1_macd_season"] = season in ["Spring", "Summer"]
             condition_details["macd"] = {
                 "season": season,
-                "is_bullish": macd_output.get("is_bullish_season", False),
+                "is_bullish": is_bullish,
                 "condition_met": conditions["condition_1_macd_season"]
             }
 
         # Condition 2: RSI is not above 90
         if sub_agent_results["RSI"]["status"] == "completed":
-            rsi_output = sub_agent_results["RSI"]["output"]
-            rsi_value = rsi_output.get("rsi_value", 0)
-            is_above_90 = rsi_output.get("is_above_90", True)
+            # Combined agent returns summary with extreme_levels
+            rsi_result = sub_agent_results["RSI"]
+            if "summary" in rsi_result:
+                rsi_summary = rsi_result["summary"]
+                rsi_value = rsi_summary.get("rsi_value", 0)
+                # Check extreme_levels or direct is_above_90 field
+                if "extreme_levels" in rsi_summary:
+                    is_above_90 = rsi_summary["extreme_levels"].get("is_above_90", True)
+                else:
+                    is_above_90 = rsi_summary.get("is_above_90", True)
+            else:
+                # Fallback for old format
+                rsi_output = rsi_result.get("output", {})
+                rsi_value = rsi_output.get("rsi_value", 0)
+                is_above_90 = rsi_output.get("is_above_90", True)
+
             conditions["condition_2_rsi_check"] = not is_above_90
             condition_details["rsi"] = {
                 "rsi_value": rsi_value,

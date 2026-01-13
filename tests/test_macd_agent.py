@@ -10,7 +10,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from agents.macd_agent_refactored import MACDAgent
+from agents.macd_combined_agent import MACDCombinedAgent as MACDAgent
 from config import MACDConfig
 
 
@@ -41,7 +41,7 @@ class TestMACDAgent(unittest.TestCase):
         """Test MACD agent initialization with default config."""
         agent = MACDAgent()
 
-        self.assertEqual(agent.name, "MACD Agent")
+        self.assertEqual(agent.name, "MACD Combined Agent")
         self.assertEqual(agent.fast_period, 12)
         self.assertEqual(agent.slow_period, 26)
         self.assertEqual(agent.signal_period, 9)
