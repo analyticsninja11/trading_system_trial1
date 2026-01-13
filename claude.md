@@ -13,9 +13,29 @@ This system implements a hierarchical multi-agent architecture for technical ind
 
 ## Recent Major Changes (Latest Commit)
 
-✅ **All 5 critical architectural issues have been fixed** (Commit: 60557cb)
+✅ **Agent Consolidation Complete** (Commit: 8b56eed)
 
-### What Was Refactored
+### What Was Done
+
+1. **MACDCombinedAgent** - Merged MACDAgent + MACDSeasonalAgent into single agent
+   - Integrates standard MACD analysis with seasonal pattern recognition
+   - Identifies market seasons (Spring, Summer, Autumn, Winter)
+   - Intelligent recommendations with confluence detection
+   - Works across all timeframes (daily, weekly, monthly)
+
+2. **RSICombinedAgent** - Merged RSIAgent + RSIValueAgent into single agent
+   - Configurable thresholds for different trading styles (70/30, 80/20, etc.)
+   - Comprehensive trend analysis (direction, strength, momentum)
+   - 5-zone detection (Extreme OB/OS, OB/OS, Neutral)
+   - Works across all timeframes with customizable parameters
+
+3. **Generic Price Data Importer** - Created unified data import script
+   - Handles multiple timeframes (Daily, Weekly, Monthly)
+   - Auto-detects ticker and timeframe from filename
+   - Converts dates to DD/MM/YYYY format
+   - Returns clean DataFrames with OHLCV data
+
+### Previous Major Refactoring (Commit: 60557cb)
 
 1. **Unified Agent Interface** - Single consistent API replacing BaseAgent/SubAgent
 2. **Centralized Configuration** - All parameters in `config.py` instead of hardcoded
@@ -28,26 +48,31 @@ This system implements a hierarchical multi-agent architecture for technical ind
 ```
 trading_system_trial1/
 ├── agents/                          # Agent implementations
-│   ├── unified_agent.py            # ✨ NEW: Unified base class
-│   ├── macd_agent_refactored.py    # ✨ NEW: Example refactored agent
+│   ├── unified_agent.py            # ✨ Unified base class
+│   ├── macd_combined_agent.py      # ✅ NEW: Combined MACD (standard + seasonal)
+│   ├── rsi_combined_agent.py       # ✅ NEW: Combined RSI (standard + value)
+│   ├── README_MACD_COMBINED.md     # ✅ NEW: MACD documentation
+│   ├── README_RSI_COMBINED.md      # ✅ NEW: RSI documentation
 │   ├── base_agent.py               # OLD: Traditional base (being phased out)
 │   ├── sub_agent.py                # OLD: ADK base (being phased out)
-│   ├── macd_agent.py               # OLD: Original MACD
-│   ├── rsi_agent.py                # TODO: Needs migration
 │   ├── sma_agent.py                # TODO: Needs migration
 │   ├── supertrend_agent.py         # TODO: Needs migration
-│   ├── macd_seasonal_agent.py      # TODO: Needs migration
-│   ├── rsi_value_agent.py          # TODO: Needs migration
 │   ├── sma_delta_agent.py          # TODO: Needs migration
-│   └── orchestrator_agent.py       # TODO: Needs updating
+│   └── orchestrator_agent.py       # ✅ UPDATED: Uses combined agents
 │
-├── config.py                        # ✨ NEW: Centralized configuration
-├── exceptions.py                    # ✨ NEW: Custom exception hierarchy
+├── scripts/                         # ✅ NEW: Utility scripts
+│   ├── import_price_data.py        # Generic price data importer
+│   └── README.md                   # Import script documentation
 │
-├── tests/                           # ✨ NEW: Test suite
+├── config.py                        # ✨ Centralized configuration
+├── exceptions.py                    # ✨ Custom exception hierarchy
+│
+├── tests/                           # Test suite
 │   ├── test_config.py              # Configuration tests (20 tests)
 │   ├── test_unified_agent.py       # Agent base tests (13 tests)
 │   ├── test_macd_agent.py          # MACD tests (12 tests)
+│   ├── test_macd_combined.py       # ✅ NEW: MACD combined tests
+│   ├── test_rsi_combined.py        # ✅ NEW: RSI combined tests
 │   └── requirements-test.txt       # Testing dependencies
 │
 ├── ui/                              # Streamlit interfaces
@@ -61,15 +86,19 @@ trading_system_trial1/
 │   ├── googl_daily.csv
 │   ├── googl_monthly.csv
 │   ├── aapl_daily.csv
-│   └── nxt_daily.csv
+│   ├── NXT_Daily.csv               # ✅ NEW: NXT daily data
+│   ├── NXT_Weekly.csv              # ✅ NEW: NXT weekly data
+│   └── NXT_Monthly.csv             # ✅ NEW: NXT monthly data
 │
-├── orchestrator.py                  # Basic agent orchestration
+├── orchestrator.py                  # ✅ UPDATED: Uses combined agents
 ├── main.py                          # CLI entry point (basic)
 ├── main_adk.py                      # CLI entry point (ADK)
 │
-├── REFACTORING_GUIDE.md            # ✨ NEW: Comprehensive refactoring guide
-├── REFACTORING_SUMMARY.md          # ✨ NEW: Executive summary
-├── QUICK_START_REFACTORED.md       # ✨ NEW: Quick start guide
+├── MACD_CONSOLIDATION_SUMMARY.md   # ✅ NEW: MACD consolidation details
+├── RSI_CONSOLIDATION_SUMMARY.md    # ✅ NEW: RSI consolidation details
+├── REFACTORING_GUIDE.md            # Comprehensive refactoring guide
+├── REFACTORING_SUMMARY.md          # Executive summary
+├── QUICK_START_REFACTORED.md       # Quick start guide
 └── requirements.txt                 # Production dependencies
 ```
 
@@ -96,23 +125,23 @@ trading_system_trial1/
 | Base Classes | BaseAgent, SubAgent | UnifiedAgent | ✅ Complete |
 | Configuration | Hardcoded | config.py | ✅ Complete |
 | Error Handling | Generic | exceptions.py | ✅ Complete |
-| MACD Agent | macd_agent.py | macd_agent_refactored.py | ✅ Complete |
-| RSI Agent | rsi_agent.py | - | ⏳ TODO |
+| MACD Agent | macd_agent.py + macd_seasonal_agent.py | macd_combined_agent.py | ✅ Complete |
+| RSI Agent | rsi_agent.py + rsi_value_agent.py | rsi_combined_agent.py | ✅ Complete |
+| Price Importer | - | scripts/import_price_data.py | ✅ Complete |
 | SMA Agent | sma_agent.py | - | ⏳ TODO |
 | Supertrend Agent | supertrend_agent.py | - | ⏳ TODO |
-| Testing | None | 45 tests | ✅ Complete |
+| SMA Delta Agent | sma_delta_agent.py | - | ⏳ TODO |
+| Testing | None | 45+ tests | ✅ Complete |
 
 ## Technical Indicators Implemented
 
-| Indicator | Purpose | Default Parameters | Agent File |
-|-----------|---------|-------------------|------------|
-| **MACD** | Trend following | Fast: 12, Slow: 26, Signal: 9 | macd_agent.py (old) / macd_agent_refactored.py (new) |
-| **RSI** | Momentum oscillator | Period: 14, Levels: 30/70 | rsi_agent.py |
-| **SMA** | Moving averages | Periods: 20/50 | sma_agent.py |
-| **Supertrend** | Trend indicator | ATR: 10, Multiplier: 3.0 | supertrend_agent.py |
-| **MACD Seasonal** | Season classification | Based on MACD histogram | macd_seasonal_agent.py |
-| **RSI Value** | RSI with zones | Period: 14, Zone: >90 | rsi_value_agent.py |
-| **SMA Delta** | Monthly SMA change | Lookback: 6/12 months | sma_delta_agent.py |
+| Indicator | Purpose | Default Parameters | Agent File | Features |
+|-----------|---------|-------------------|------------|----------|
+| **MACD Combined** | Trend + Seasons | Fast: 12, Slow: 26, Signal: 9 | macd_combined_agent.py | Standard MACD + Seasonal patterns (Spring/Summer/Autumn/Winter) + Confluence analysis |
+| **RSI Combined** | Momentum + Zones | Period: 14, OB/OS: 70/30, Extreme: 90/10 | rsi_combined_agent.py | RSI calculation + Configurable thresholds + Trend analysis + 5-zone detection |
+| **SMA** | Moving averages | Periods: 20/50 | sma_agent.py | Simple moving averages |
+| **Supertrend** | Trend indicator | ATR: 10, Multiplier: 3.0 | supertrend_agent.py | Supertrend calculation |
+| **SMA Delta** | Monthly SMA change | Lookback: 6/12 months | sma_delta_agent.py | SMA delta trends |
 
 ## Configuration System
 
@@ -224,10 +253,10 @@ python -m unittest tests.test_config.TestMACDConfig.test_default_values
 
 ## Using the Refactored System
 
-### Example: MACD Agent
+### Example: MACD Combined Agent
 
 ```python
-from agents.macd_agent_refactored import MACDAgent
+from agents.macd_combined_agent import MACDCombinedAgent
 from config import MACDConfig
 import pandas as pd
 
@@ -235,12 +264,12 @@ import pandas as pd
 df = pd.read_csv('data/googl_daily.csv')
 
 # Option 1: Use default config
-agent = MACDAgent()
+agent = MACDCombinedAgent()
 result = agent.run(df)
 
 # Option 2: Use custom config
 custom_config = MACDConfig(fast_period=10, slow_period=20, signal_period=5)
-agent = MACDAgent(config=custom_config)
+agent = MACDCombinedAgent(config=custom_config)
 result = agent.run(df)
 
 # Check results
@@ -249,11 +278,83 @@ if result.is_successful():
     print(f"Summary: {result.summary}")
     print(f"Latest MACD: {result.summary['latest_macd']}")
     print(f"Trend: {result.summary['trend']}")
+
+    # Access seasonal analysis
+    seasonal = result.summary['seasonal_analysis']
+    print(f"Season: {seasonal['current_season']}")
+    print(f"Is Bullish Season: {seasonal['is_bullish_season']}")
+
+    # Access recommendation
+    rec = result.summary['recommendation']
+    print(f"Action: {rec['action']}")
+    print(f"Confidence: {rec['confidence']}")
+    print(f"Reasoning: {rec['reasoning']}")
 else:
     print(f"Error: {result.error}")
 
 # Access data
 df_with_indicators = result.data
+```
+
+### Example: RSI Combined Agent
+
+```python
+from agents.rsi_combined_agent import RSICombinedAgent
+from config import RSIConfig
+import pandas as pd
+
+# Load data
+df = pd.read_csv('data/googl_daily.csv')
+
+# Option 1: Use default config (70/30)
+agent = RSICombinedAgent()
+result = agent.run(df)
+
+# Option 2: Crypto-style thresholds (80/20)
+custom_config = RSIConfig()
+custom_config.overbought_threshold = 80.0
+custom_config.oversold_threshold = 20.0
+agent = RSICombinedAgent(config=custom_config)
+result = agent.run(df)
+
+# Check results
+if result.is_successful():
+    summary = result.summary
+    print(f"RSI: {summary['latest_rsi']}")
+    print(f"Zone: {summary['zone']}")
+    print(f"Signal: {summary['signal']}")
+
+    # Access trend analysis
+    trend = summary['trend_analysis']
+    print(f"Trend: {trend['direction']} ({trend['strength']})")
+    print(f"Momentum: {trend['momentum']}")
+
+    # Check extreme levels
+    extreme = summary['extreme_levels']
+    print(f"Above 90: {extreme['is_above_90']}")
+else:
+    print(f"Error: {result.error}")
+```
+
+### Example: Import Price Data
+
+```python
+from scripts.import_price_data import import_ticker_data
+
+# Import all timeframes for a ticker
+nxt_data = import_ticker_data('NXT', data_dir='data')
+
+# Access different timeframes
+daily_df = nxt_data['daily']
+weekly_df = nxt_data['weekly']
+monthly_df = nxt_data['monthly']
+
+print(f"Daily: {len(daily_df)} rows")
+print(f"Weekly: {len(weekly_df)} rows")
+print(f"Monthly: {len(monthly_df)} rows")
+
+# DataFrame has: date, open, high, low, close
+# Date format: DD/MM/YYYY
 ```
 
 ### Example: Error Handling
@@ -432,20 +533,23 @@ Install: `pip install -r tests/requirements-test.txt`
 ## Next Steps / TODO
 
 ### High Priority
-1. ⏳ Migrate RSI agent to UnifiedAgent
-2. ⏳ Migrate SMA agent to UnifiedAgent
-3. ⏳ Migrate Supertrend agent to UnifiedAgent
-4. ⏳ Migrate seasonal/value/delta sub-agents
+1. ✅ ~~Migrate RSI agent to UnifiedAgent~~ - COMPLETE (RSICombinedAgent)
+2. ✅ ~~Migrate MACD agent to UnifiedAgent~~ - COMPLETE (MACDCombinedAgent)
+3. ⏳ Migrate SMA agent to UnifiedAgent
+4. ⏳ Migrate Supertrend agent to UnifiedAgent
+5. ⏳ Migrate SMA Delta agent to UnifiedAgent
 
 ### Medium Priority
-5. ⏳ Update orchestrators to use UnifiedAgent
-6. ⏳ Add logging framework (use LoggingConfig)
-7. ⏳ Update data importer with custom exceptions
+6. ✅ ~~Update orchestrators to use combined agents~~ - COMPLETE
+7. ⏳ Add logging framework (use LoggingConfig)
+8. ⏳ Update data importer with custom exceptions
+9. ⏳ Consider combining SMA + SMADelta agents
 
 ### Low Priority
-8. ⏳ Update Streamlit UIs to use config system
-9. ⏳ Implement weighted voting for signals
-10. ⏳ Add timeout handling for agent execution
+10. ⏳ Update Streamlit UIs to use config system and combined agents
+11. ⏳ Implement weighted voting for signals
+12. ⏳ Add timeout handling for agent execution
+13. ⏳ Push changes to GitHub repository
 
 ## Useful Commands
 
@@ -471,6 +575,11 @@ pip install -r tests/requirements-test.txt
 
 ## Documentation Files
 
+- **MACD_CONSOLIDATION_SUMMARY.md** - MACD agent consolidation details
+- **RSI_CONSOLIDATION_SUMMARY.md** - RSI agent consolidation details
+- **agents/README_MACD_COMBINED.md** - MACD Combined Agent documentation
+- **agents/README_RSI_COMBINED.md** - RSI Combined Agent documentation
+- **scripts/README.md** - Price data import script documentation
 - **REFACTORING_GUIDE.md** - Comprehensive guide (567 lines)
 - **REFACTORING_SUMMARY.md** - Executive summary with metrics
 - **QUICK_START_REFACTORED.md** - Quick start guide
@@ -489,11 +598,13 @@ For questions about:
 
 ## Version History
 
-- **Latest (60557cb)** - Major refactoring: Fixed all 5 critical issues
+- **Latest (8b56eed)** - Agent Consolidation: Combined MACD and RSI agents + Generic price importer
+- **Previous (60557cb)** - Major refactoring: Fixed all 5 critical issues
 - **Initial (bd70bd5)** - Google ADK-compatible agentic trading system
 
 ---
 
-**Last Updated:** 2026-01-12
-**System Status:** ✅ Production Ready (with new refactored components)
-**Test Status:** ✅ 45/45 tests passing
+**Last Updated:** 2026-01-13
+**System Status:** ✅ Production Ready with Combined Agents
+**Test Status:** ✅ All tests passing (45+ tests)
+**Agent Status:** ✅ MACD Combined, ✅ RSI Combined, ⏳ SMA/Supertrend remaining
