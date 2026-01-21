@@ -13,9 +13,29 @@ This system implements a hierarchical multi-agent architecture for technical ind
 
 ## Recent Major Changes (Latest)
 
-✅ **ALL AGENT MIGRATIONS COMPLETE** (2026-01-17)
+✅ **LEGACY CODE CLEANUP COMPLETE** (2026-01-21)
 
 ### What Was Done
+
+1. **Deleted Legacy Files** - Removed all deprecated agent files:
+   - `agents/base_agent.py` - Old base class (replaced by UnifiedAgent)
+   - `agents/sub_agent.py` - Old ADK base class (replaced by UnifiedAgent)
+   - `agents/sma_agent.py` - Replaced by SMACombinedAgent
+   - `agents/supertrend_agent.py` - Replaced by SupertrendCombinedAgent
+   - `agents/sma_delta_agent.py` - Replaced by SMADeltaCombinedAgent
+   - `agents/macd_agent.py` - Replaced by MACDCombinedAgent
+   - `agents/macd_agent_refactored.py` - Replaced by MACDCombinedAgent
+   - `agents/macd_seasonal_agent.py` - Replaced by MACDCombinedAgent
+   - `agents/rsi_agent.py` - Replaced by RSICombinedAgent
+   - `agents/rsi_value_agent.py` - Replaced by RSICombinedAgent
+
+2. **Updated Orchestrators** - Both orchestrators now use combined agents:
+   - `orchestrator.py` - Uses SMACombinedAgent, MACDCombinedAgent, RSICombinedAgent
+   - `agents/orchestrator_agent.py` - Uses all combined agents including SupertrendCombinedAgent and SMADeltaCombinedAgent
+
+3. **Updated Module Exports** - `agents/__init__.py` now exports only combined agents
+
+### Previous: All Agent Migrations (2026-01-17)
 
 1. **SupertrendCombinedAgent** - Migrated Supertrend agent to UnifiedAgent architecture
    - ATR (Average True Range) calculation
@@ -78,23 +98,19 @@ This system implements a hierarchical multi-agent architecture for technical ind
 ```
 trading_system_trial1/
 ├── agents/                          # Agent implementations
+│   ├── __init__.py                 # ✅ Module exports (combined agents only)
 │   ├── unified_agent.py            # ✨ Unified base class
 │   ├── macd_combined_agent.py      # ✅ Combined MACD (standard + seasonal)
 │   ├── rsi_combined_agent.py       # ✅ Combined RSI (standard + value)
 │   ├── sma_combined_agent.py       # ✅ Combined SMA (multi-period + crossovers)
-│   ├── supertrend_combined_agent.py # ✅ NEW: Combined Supertrend (ATR bands + signals)
-│   ├── sma_delta_combined_agent.py # ✅ NEW: Combined SMA Delta (momentum analysis)
+│   ├── supertrend_combined_agent.py # ✅ Combined Supertrend (ATR bands + signals)
+│   ├── sma_delta_combined_agent.py # ✅ Combined SMA Delta (momentum analysis)
+│   ├── orchestrator_agent.py       # ✅ ADK Orchestrator (uses all combined agents)
 │   ├── README_MACD_COMBINED.md     # MACD documentation
 │   ├── README_RSI_COMBINED.md      # RSI documentation
 │   ├── README_SMA_COMBINED.md      # SMA documentation
-│   ├── README_SUPERTREND_COMBINED.md # ✅ NEW: Supertrend documentation
-│   ├── README_SMA_DELTA_COMBINED.md # ✅ NEW: SMA Delta documentation
-│   ├── base_agent.py               # OLD: Traditional base (being phased out)
-│   ├── sub_agent.py                # OLD: ADK base (being phased out)
-│   ├── sma_agent.py                # OLD: Legacy (replaced by sma_combined_agent.py)
-│   ├── supertrend_agent.py         # OLD: Legacy (replaced by supertrend_combined_agent.py)
-│   ├── sma_delta_agent.py          # OLD: Legacy (replaced by sma_delta_combined_agent.py)
-│   └── orchestrator_agent.py       # ✅ UPDATED: Uses combined agents
+│   ├── README_SUPERTREND_COMBINED.md # Supertrend documentation
+│   └── README_SMA_DELTA_COMBINED.md # SMA Delta documentation
 │
 ├── scripts/                         # ✅ NEW: Utility scripts
 │   ├── import_price_data.py        # Generic price data importer
@@ -143,34 +159,34 @@ trading_system_trial1/
 
 ## Architecture Patterns
 
-### Current State: Dual System
+### Current State: Unified System ✅
 
-**1. Legacy System (Being Phased Out)**
-- Uses `BaseAgent` and `SubAgent` classes
-- Magic numbers hardcoded throughout
-- Generic exception handling
-- No tests
+The codebase now uses a single, clean architecture:
 
-**2. New Refactored System (Recommended)**
-- Uses `UnifiedAgent` base class
-- Configuration via `config.py`
-- Specific exception types from `exceptions.py`
-- Comprehensive test coverage
+- **UnifiedAgent** base class for all agents
+- **Configuration** via `config.py` (no hardcoded values)
+- **Custom exceptions** from `exceptions.py`
+- **Comprehensive test coverage** (118 tests)
 
-### Migration Status
+All legacy code has been removed. No dual system exists anymore.
 
-| Component | Old | New | Status |
-|-----------|-----|-----|--------|
-| Base Classes | BaseAgent, SubAgent | UnifiedAgent | ✅ Complete |
-| Configuration | Hardcoded | config.py | ✅ Complete |
-| Error Handling | Generic | exceptions.py | ✅ Complete |
-| MACD Agent | macd_agent.py + macd_seasonal_agent.py | macd_combined_agent.py | ✅ Complete |
-| RSI Agent | rsi_agent.py + rsi_value_agent.py | rsi_combined_agent.py | ✅ Complete |
-| SMA Agent | sma_agent.py | sma_combined_agent.py | ✅ Complete |
-| Supertrend Agent | supertrend_agent.py | supertrend_combined_agent.py | ✅ Complete |
-| SMA Delta Agent | sma_delta_agent.py | sma_delta_combined_agent.py | ✅ Complete |
-| Price Importer | - | scripts/import_price_data.py | ✅ Complete |
-| Testing | None | 118 tests | ✅ Complete |
+### Migration Status - ALL COMPLETE ✅
+
+| Component | Status | File |
+|-----------|--------|------|
+| Base Class | ✅ Complete | `unified_agent.py` |
+| Configuration | ✅ Complete | `config.py` |
+| Error Handling | ✅ Complete | `exceptions.py` |
+| MACD Agent | ✅ Complete | `macd_combined_agent.py` |
+| RSI Agent | ✅ Complete | `rsi_combined_agent.py` |
+| SMA Agent | ✅ Complete | `sma_combined_agent.py` |
+| Supertrend Agent | ✅ Complete | `supertrend_combined_agent.py` |
+| SMA Delta Agent | ✅ Complete | `sma_delta_combined_agent.py` |
+| Basic Orchestrator | ✅ Complete | `orchestrator.py` |
+| ADK Orchestrator | ✅ Complete | `agents/orchestrator_agent.py` |
+| Price Importer | ✅ Complete | `scripts/import_price_data.py` |
+| Testing | ✅ Complete | 118 tests passing |
+| Legacy Cleanup | ✅ Complete | All legacy files deleted |
 
 ## Technical Indicators Implemented
 
@@ -514,10 +530,10 @@ print(f"Monthly: {len(monthly_df)} rows")
 ### Example: Error Handling
 
 ```python
-from agents.macd_agent_refactored import MACDAgent
+from agents.macd_combined_agent import MACDCombinedAgent
 from exceptions import InsufficientDataError, MissingColumnsError
 
-agent = MACDAgent()
+agent = MACDCombinedAgent()
 
 try:
     result = agent.run(df)
@@ -655,13 +671,13 @@ Requires 2 of 4 conditions for BUY signal:
 ✅ Use `config.py` for all parameters
 ✅ Use specific exceptions from `exceptions.py`
 ✅ Write tests for new features
-✅ Follow the MACD refactored example
+✅ Follow existing combined agent patterns
 ✅ Validate configuration before use
 ✅ Check `result.is_successful()` before using data
 
 ### DON'T
 ❌ Hardcode magic numbers
-❌ Use `BaseAgent` or `SubAgent` for new code
+❌ Create new base classes (use UnifiedAgent)
 ❌ Use generic `Exception` or `ValueError`
 ❌ Skip writing tests
 ❌ Modify config without calling `validate()`
@@ -686,24 +702,19 @@ Install: `pip install -r tests/requirements-test.txt`
 
 ## Next Steps / TODO
 
-### High Priority - ALL COMPLETE ✅
-1. ✅ ~~Migrate RSI agent to UnifiedAgent~~ - COMPLETE (RSICombinedAgent)
-2. ✅ ~~Migrate MACD agent to UnifiedAgent~~ - COMPLETE (MACDCombinedAgent)
-3. ✅ ~~Migrate SMA agent to UnifiedAgent~~ - COMPLETE (SMACombinedAgent)
-4. ✅ ~~Migrate Supertrend agent to UnifiedAgent~~ - COMPLETE (SupertrendCombinedAgent)
-5. ✅ ~~Migrate SMA Delta agent to UnifiedAgent~~ - COMPLETE (SMADeltaCombinedAgent)
+### Completed ✅
+1. ✅ Migrate all agents to UnifiedAgent architecture
+2. ✅ Update orchestrators to use combined agents
+3. ✅ Delete all legacy files (base_agent, sub_agent, old agents)
+4. ✅ Update module exports
+5. ✅ Push changes to GitHub repository
 
-### Medium Priority
-6. ✅ ~~Update orchestrators to use combined agents~~ - COMPLETE
-7. ⏳ Add logging framework (use LoggingConfig)
-8. ⏳ Update data importer with custom exceptions
-9. ⏳ Update orchestrator to use all combined agents
-
-### Low Priority
-10. ⏳ Update Streamlit UIs to use config system and combined agents
-11. ⏳ Implement weighted voting for signals
-12. ⏳ Add timeout handling for agent execution
-13. ⏳ Push changes to GitHub repository
+### Remaining Tasks
+6. ⏳ Add logging framework (use LoggingConfig)
+7. ⏳ Update data importer with custom exceptions
+8. ⏳ Update Streamlit UIs to use config system and combined agents
+9. ⏳ Implement weighted voting for signals
+10. ⏳ Add timeout handling for agent execution
 
 ## Useful Commands
 
@@ -748,14 +759,15 @@ pip install -r tests/requirements-test.txt
 ## Contact & Support
 
 For questions about:
-- **Migration patterns** - See `agents/macd_agent_refactored.py`
+- **Agent patterns** - See any combined agent (e.g., `agents/macd_combined_agent.py`)
 - **Configuration** - See `config.py` and tests
 - **Testing** - See `tests/` directory
 - **Architecture** - See REFACTORING_GUIDE.md
 
 ## Version History
 
-- **Latest (2026-01-17)** - ALL AGENTS MIGRATED: Supertrend + SMA Delta combined agents complete (118 tests)
+- **Latest (2026-01-21)** - LEGACY CLEANUP: Deleted all legacy files, updated orchestrators
+- **Previous (2026-01-17)** - ALL AGENTS MIGRATED: Supertrend + SMA Delta combined agents complete (118 tests)
 - **Previous (2026-01-17)** - SMA Agent Migration: SMACombinedAgent with crossover detection
 - **Previous (8b56eed)** - Agent Consolidation: Combined MACD and RSI agents + Generic price importer
 - **Previous (60557cb)** - Major refactoring: Fixed all 5 critical issues
@@ -763,7 +775,7 @@ For questions about:
 
 ---
 
-**Last Updated:** 2026-01-17
-**System Status:** ✅ Production Ready - ALL AGENTS MIGRATED
+**Last Updated:** 2026-01-21
+**System Status:** ✅ Production Ready - Clean Architecture
 **Test Status:** ✅ All 118 tests passing
-**Agent Status:** ✅ MACD Combined, ✅ RSI Combined, ✅ SMA Combined, ✅ Supertrend Combined, ✅ SMA Delta Combined
+**Codebase Status:** ✅ All legacy code removed, unified architecture only

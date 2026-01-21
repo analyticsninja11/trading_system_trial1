@@ -7,8 +7,8 @@ from typing import Dict, Any, List
 import concurrent.futures
 from .macd_combined_agent import MACDCombinedAgent
 from .rsi_combined_agent import RSICombinedAgent
-from .sma_delta_agent import SMADeltaAgent
-from .supertrend_agent import SupertrendAgent
+from .sma_delta_combined_agent import SMADeltaCombinedAgent
+from .supertrend_combined_agent import SupertrendCombinedAgent
 
 
 class OrchestratorAgent:
@@ -26,11 +26,11 @@ class OrchestratorAgent:
         self.name = "Base Orchestrator Agent"
         self.status = "initialized"
 
-        # Initialize sub-agents
+        # Initialize sub-agents (all using UnifiedAgent architecture)
         self.macd_agent = MACDCombinedAgent()
         self.rsi_agent = RSICombinedAgent()
-        self.sma_agent = SMADeltaAgent(short_period=6, long_period=12)
-        self.supertrend_agent = SupertrendAgent(atr_length=10, multiplier=3.0)
+        self.sma_agent = SMADeltaCombinedAgent()  # Uses default config: short=6, long=12
+        self.supertrend_agent = SupertrendCombinedAgent()  # Uses default config: atr=10, multiplier=3.0
 
         self.sub_agents = [
             self.macd_agent,
@@ -197,23 +197,27 @@ class OrchestratorAgent:
 
         # Condition 3: SMA delta is negative and rising OR positive and rising
         if sub_agent_results["SMA"]["status"] == "completed":
-            sma_output = sub_agent_results["SMA"]["output"]
-            is_favorable = sma_output.get("is_favorable_for_buy", False)
+            # Combined agent returns data in 'summary', not 'output'
+            sma_result = sub_agent_results["SMA"]
+            sma_summary = sma_result.get("summary", sma_result.get("output", {}))
+            is_favorable = sma_summary.get("is_favorable_for_buy", False)
             conditions["condition_3_sma_delta"] = is_favorable
             condition_details["sma"] = {
-                "delta": sma_output.get("sma_delta", 0),
-                "trend": sma_output.get("sma_delta_trend", "Unknown"),
-                "is_rising_last_2_months": sma_output.get("is_rising_last_2_months", False),
+                "delta": sma_summary.get("sma_delta", 0),
+                "trend": sma_summary.get("sma_delta_trend", "Unknown"),
+                "is_rising_last_2_months": sma_summary.get("is_rising_last_2_periods", False),
                 "condition_met": conditions["condition_3_sma_delta"]
             }
 
         # Condition 4: Supertrend is Green
         if sub_agent_results["Supertrend"]["status"] == "completed":
-            supertrend_output = sub_agent_results["Supertrend"]["output"]
-            is_green = supertrend_output.get("is_green", False)
+            # Combined agent returns data in 'summary', not 'output'
+            supertrend_result = sub_agent_results["Supertrend"]
+            supertrend_summary = supertrend_result.get("summary", supertrend_result.get("output", {}))
+            is_green = supertrend_summary.get("is_green", False)
             conditions["condition_4_supertrend"] = is_green
             condition_details["supertrend"] = {
-                "signal": supertrend_output.get("supertrend_signal", "Red"),
+                "signal": supertrend_summary.get("supertrend_signal", "Red"),
                 "is_green": is_green,
                 "condition_met": conditions["condition_4_supertrend"]
             }
@@ -325,8 +329,9 @@ class OrchestratorAgent:
         print("\n🤖 Sub-Agent Results:")
         for agent_name, agent_result in results["sub_agent_results"].items():
             print(f"\n   {agent_name} Agent:")
-            if agent_result["status"] == "completed" and agent_result["output"]:
-                output = agent_result["output"]
+            # Combined agents use 'summary', legacy agents use 'output'
+            output = agent_result.get("summary") or agent_result.get("output")
+            if agent_result["status"] == "completed" and output:
                 for key, value in list(output.items())[:5]:  # Show first 5 items
                     if not isinstance(value, dict) and not isinstance(value, list):
                         print(f"      {key}: {value}")

@@ -4,7 +4,8 @@ Agent Orchestrator - Coordinates multiple technical indicator agents
 import pandas as pd
 from typing import List, Dict, Any
 from datetime import datetime
-from agents import MACDCombinedAgent, SMAAgent, RSICombinedAgent, BaseAgent
+from agents import MACDCombinedAgent, SMACombinedAgent, RSICombinedAgent
+from agents.unified_agent import UnifiedAgent
 import concurrent.futures
 import os
 
@@ -16,7 +17,7 @@ class AgentOrchestrator:
     """
 
     def __init__(self):
-        self.agents: List[BaseAgent] = []
+        self.agents: List[UnifiedAgent] = []
         self.results: Dict[str, Any] = {}
         self.data: pd.DataFrame = None
         self.ticker: str = None
@@ -28,7 +29,7 @@ class AgentOrchestrator:
         """
         self.agents = [
             MACDCombinedAgent(),
-            SMAAgent(periods=[20, 50]),
+            SMACombinedAgent(periods=[20, 50]),
             RSICombinedAgent()
         ]
         print(f"Initialized {len(self.agents)} agents")
@@ -112,7 +113,11 @@ class AgentOrchestrator:
 
         for agent in self.agents:
             result = agent.run(self.data)
-            self.results["agents"][agent.name] = result
+            # Convert AgentResult to dict if needed
+            if hasattr(result, 'to_dict'):
+                self.results["agents"][agent.name] = result.to_dict()
+            else:
+                self.results["agents"][agent.name] = result
 
         print("\n" + "=" * 60)
         print("WORKFLOW COMPLETED")
@@ -156,7 +161,11 @@ class AgentOrchestrator:
                 agent = future_to_agent[future]
                 try:
                     result = future.result()
-                    self.results["agents"][agent.name] = result
+                    # Convert AgentResult to dict if needed
+                    if hasattr(result, 'to_dict'):
+                        self.results["agents"][agent.name] = result.to_dict()
+                    else:
+                        self.results["agents"][agent.name] = result
                 except Exception as e:
                     print(f"Agent {agent.name} generated an exception: {e}")
                     self.results["agents"][agent.name] = {
